@@ -53,7 +53,13 @@ const start = async () => {
     console.log(error);
   }
 };
-const server = http.createServer(app);
+// const server = http.createServer(app);
+
+const options = {
+  key: fs.readFileSync("./privkey.pem"),
+  cert: fs.readFileSync("./fullchain.pem"),
+};
+const server = https.createServer(options, app);
 
 server.listen(port, async () => {
   console.log(`Server is Listening At ${port}`);
