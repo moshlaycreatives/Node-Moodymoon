@@ -21,6 +21,8 @@ const orderRouter = require("./routes/order");
 const reviewRouter = require("./routes/review");
 const notificationRouter = require("./routes/notification");
 const paymentRouter = require("./routes/payment");
+const chatRouter = require("./routes/chat");
+const setupSocket = require("./socket");
 
 app.use(express.json());
 app.use(cors());
@@ -45,6 +47,7 @@ app.use("/api/v1", orderRouter);
 app.use("/api/v1", reviewRouter);
 app.use("/api/v1", notificationRouter);
 app.use("/api/v1", paymentRouter);
+app.use("/api/v1", chatRouter);
 const start = async () => {
   try {
     await connectDB(process.env.MONGO_URI);
@@ -60,6 +63,7 @@ const options = {
   cert: fs.readFileSync("./fullchain.pem"),
 };
 const server = https.createServer(options, app);
+setupSocket(server);
 
 server.listen(port, async () => {
   console.log(`Server is Listening At ${port}`);

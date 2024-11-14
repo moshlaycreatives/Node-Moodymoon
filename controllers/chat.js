@@ -1,4 +1,5 @@
 const Chat = require("../models/chat");
+const User = require("../models/user");
 
 exports.getConversation = async (senderId, receiverId) => {
   const chat = await Chat.findOne({
@@ -13,6 +14,9 @@ exports.getConversation = async (senderId, receiverId) => {
 
 exports.getAllConversations = async (req, res) => {
   try {
+    const users = await User.find({ permanentDeleted: false }).select(
+      "-password -setNewPwd -forgotPasswordOtp -forgotPasswordOtpExpire "
+    );
     // const { userId } = req.user;
     const chats = await Chat.find({
       permanentDeleted: false,
@@ -55,7 +59,7 @@ exports.getAllConversations = async (req, res) => {
 
     return res
       .status(200)
-      .json({ success: true, data: conversationsWithLastMessage });
+      .json({ success: true, data: conversationsWithLastMessage, users });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
@@ -64,6 +68,34 @@ exports.getAllChats = async (req, res) => {
   try {
     const chats = await Chat.find({
       permanentDeleted: false,
+    })
+      .populate({
+        path: "participants",
+        select:
+          "-forgotPasswordOtp -setNewPwd -password  -forgotPasswordOtpExpire ",
+      })
+      .sort({
+        updatedAt: -1,
+      });
+
+    if (!chats || chats.length === 0) {
+      return res
+        .status(200)
+        .json({ success: false, message: "No Conversations" });
+    }
+
+    return res.status(200).json({ success: true, data: chats });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.getAllChatsForUser = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const chats = await Chat.find({
+      permanentDeleted: false,
+      participants: userId,
     })
       .populate({
         path: "participants",

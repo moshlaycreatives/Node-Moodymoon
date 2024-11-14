@@ -246,3 +246,25 @@ exports.getAllCustomers = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
+
+exports.cancelOrder = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const { orderId } = req.params;
+    // const { status } = req.body;
+    // if (!status) {
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Please Provide Status" });
+    // }
+    const cancel = await Order.findOneAndUpdate(
+      { _id: orderId, customer: userId },
+      { status: "cancelled" }
+    );
+    return res
+      .status(200)
+      .json({ success: true, message: "Order Cancelled Successfully" });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};

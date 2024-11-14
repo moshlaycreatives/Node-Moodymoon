@@ -46,17 +46,20 @@ exports.updateProfile = async (req, res) => {
   try {
     const { userId } = req.user;
     const { firstName, lastName, phone } = req.body;
-    await User.findOneAndUpdate(
+    const newData = await User.findOneAndUpdate(
       { _id: userId },
       {
         firstName,
         lastName,
         phone,
-      }
+      },
+      { new: true }
     );
-    return res
-      .status(200)
-      .json({ success: true, message: "Profile Updated Successfully" });
+    return res.status(200).json({
+      success: true,
+      message: "Profile Updated Successfully",
+      data: newData,
+    });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
   }

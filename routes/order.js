@@ -7,6 +7,7 @@ const {
   changeOrderStatus,
   getOrderById,
   deleteOrder,
+  cancelOrder,
 } = require("../controllers/order");
 const auth = require("../middlewares/userAuth");
 const upload = require("../utills/upload");
@@ -17,6 +18,7 @@ orderRouter.get("/getAllOrders", getAllOrders);
 orderRouter.get("/getAllCustomers", getAllCustomers);
 orderRouter.patch("/changeOrderStatus/:orderId", changeOrderStatus);
 orderRouter.patch("/deleteOrder/:orderId", deleteOrder);
+orderRouter.patch("/cancelOrder/:orderId", auth, cancelOrder);
 orderRouter.get("/getOrderById/:orderId", getOrderById);
 
 module.exports = orderRouter;

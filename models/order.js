@@ -26,7 +26,7 @@ const orderSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "pending",
-      enum: ["pending", "shipped", "done", "cancelled"],
+      enum: ["pending", "shipped", "completed", "cancelled"],
     },
     subtotal: { type: Number, trim: true },
     shippingFee: { type: Number, trim: true },
