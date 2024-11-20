@@ -110,7 +110,6 @@ exports.updateProduct = async (req, res) => {
       flavor,
       labTestName,
     } = req.body;
-    // console.log(req.files);
 
     const updateFields = {
       productName,
@@ -125,15 +124,25 @@ exports.updateProduct = async (req, res) => {
       flavor,
       labTestName,
     };
-    // console.log(req.files);
-    if (req.files && req.files.fieldname === "images") {
-      const images = req.files.map((file) => "/" + file.path);
-      updateFields.images = images;
-    }
 
-    if (req.files && req.files.fieldname === "labreport") {
-      const labReport = "/" + req.files[0].path;
-      updateFields.labTest = labReport;
+    if (req.files) {
+      // Handle images
+      const imageFiles = req.files.filter(
+        (file) => file.fieldname === "images"
+      );
+      if (imageFiles.length > 0) {
+        updateFields.images = imageFiles.map(
+          (file) => "/" + file.path.replace(/\\/g, "/")
+        ); // Normalize paths
+      }
+
+      // Handle lab report
+      const labReportFile = req.files.find(
+        (file) => file.fieldname === "labreport"
+      );
+      if (labReportFile) {
+        updateFields.labTest = "/" + labReportFile.path.replace(/\\/g, "/"); // Normalize paths
+      }
     }
 
     await Product.findOneAndUpdate({ _id: productId }, updateFields);
