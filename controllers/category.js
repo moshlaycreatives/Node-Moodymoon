@@ -25,9 +25,7 @@ exports.createCategory = async (req, res) => {
 
 exports.getAllCategories = async (req, res) => {
   try {
-    const cats = await Category.find({ permanentDeleted: false }).sort({
-      createdAt: -1,
-    });
+    const cats = await Category.find({ permanentDeleted: false });
     if (!cats) {
       return res
         .status(200)
