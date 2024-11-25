@@ -23,11 +23,11 @@ exports.getSalesDetails = async (req, res) => {
     ]);
 
     const todaysSales = todaysOrders.reduce(
-      (acc, order) => acc + order.price,
+      (acc, order) => acc + order.total,
       0
     );
     const yesterdaysSales = yesterdaysOrders.reduce(
-      (acc, order) => acc + order.price,
+      (acc, order) => acc + order.total,
       0
     );
 
@@ -48,6 +48,39 @@ exports.getSalesDetails = async (req, res) => {
       yesterdayOrders: yesterdaysOrders,
       todayShippedCount,
       totalOrders,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.getOverviewDetails = async (req, res) => {
+  try {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const orders = await Order.find({
+      permanentDeleted: false,
+    });
+
+    const revenue = orders.reduce((acc, order) => acc + order.total, 0);
+
+    const latestUniqueCustomers = await Order.distinct("customer", {
+      permanentDeleted: false,
+      createdAt: { $gte: sevenDaysAgo },
+    });
+
+    const uniqueCustomers = await Order.distinct("customer", {
+      permanentDeleted: false,
+    });
+    const totalDifferentCustomer = uniqueCustomers.length;
+    const totalLatestDifferentCustomer = latestUniqueCustomers.length;
+
+    return res.status(200).json({
+      success: true,
+      totalRevenue: revenue,
+      totalUniqueCustomers: totalDifferentCustomer,
+      totalLatestDifferentCustomer,
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });

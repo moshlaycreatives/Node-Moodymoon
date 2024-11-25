@@ -22,6 +22,7 @@ const reviewRouter = require("./routes/review");
 const notificationRouter = require("./routes/notification");
 const paymentRouter = require("./routes/payment");
 const chatRouter = require("./routes/chat");
+const adminRouter = require("./routes/adminDashboardData");
 const setupSocket = require("./socket");
 
 app.use(express.json());
@@ -48,6 +49,7 @@ app.use("/api/v1", reviewRouter);
 app.use("/api/v1", notificationRouter);
 app.use("/api/v1", paymentRouter);
 app.use("/api/v1", chatRouter);
+app.use("/api/v1", adminRouter);
 const start = async () => {
   try {
     await connectDB(process.env.MONGO_URI);

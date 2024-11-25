@@ -1,5 +1,5 @@
 const Product = require("../models/product");
-const LabReport = require("../models/labReport");
+// const LabReport = require("../models/labReport");
 const { validateRequiredFields } = require("../utills/validateRequiredFields");
 
 exports.addProduct = async (req, res) => {
@@ -60,11 +60,11 @@ exports.addProduct = async (req, res) => {
         labTest: labTest[0],
         labTestName,
       });
-      await LabReport.create({
-        labTest: labTest[0],
-        labTestName,
-        image: images[0],
-      });
+      // await LabReport.create({
+      //   labTest: labTest[0],
+      //   labTestName,
+      //   image: images[0],
+      // });
       return res
         .status(200)
         .json({ success: true, message: "Product Added Successfully" });
