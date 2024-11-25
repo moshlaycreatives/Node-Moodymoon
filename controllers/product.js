@@ -124,24 +124,23 @@ exports.updateProduct = async (req, res) => {
       flavor,
       labTestName,
     };
-
+    // console.log("|||||||||||||||", req.files);
     if (req.files) {
-      // Handle images
       const imageFiles = req.files.filter(
         (file) => file.fieldname === "images"
       );
       if (imageFiles.length > 0) {
         updateFields.images = imageFiles.map(
           (file) => "/" + file.path.replace(/\\/g, "/")
-        ); // Normalize paths
+        );
       }
 
-      // Handle lab report
       const labReportFile = req.files.find(
         (file) => file.fieldname === "labreport"
       );
+      // console.log(labReportFile, ">>>>>>>>>>>");
       if (labReportFile) {
-        updateFields.labTest = "/" + labReportFile.path.replace(/\\/g, "/"); // Normalize paths
+        updateFields.labTest = "/" + labReportFile.path.replace(/\\/g, "/");
       }
     }
 
@@ -151,7 +150,7 @@ exports.updateProduct = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Product Updated Successfully" });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     return res.status(400).json({ success: false, message: error.message });
   }
 };
