@@ -6,7 +6,7 @@ const {
 const auth = require("../middlewares/userAuth");
 const upload = require("../utills/upload");
 
-adminRouter.get("/getSalesDetails", getSalesDetails);
+adminRouter.post("/getSalesDetails", getSalesDetails);
 adminRouter.get("/getOverviewDetails", getOverviewDetails);
 
 module.exports = adminRouter;

@@ -80,7 +80,12 @@ exports.addProduct = async (req, res) => {
 
 exports.getAllProducts = async (req, res) => {
   try {
+    const { page } = req.query;
+    const limit = 20;
+    const skip = (page - 1) * limit;
     const products = await Product.find({ permanentDeleted: false })
+      .limit(limit)
+      .skip(skip)
       .populate("productCategory")
       .populate("brand");
     if (!products) {
@@ -88,7 +93,12 @@ exports.getAllProducts = async (req, res) => {
         .status(400)
         .json({ success: false, message: "No Products Available" });
     }
-    return res.status(200).json({ success: true, data: products });
+
+    return res.status(200).json({
+      success: true,
+      data: products,
+      total: await Product.countDocuments({ permanentDeleted: false }),
+    });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
   }

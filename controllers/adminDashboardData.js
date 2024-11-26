@@ -1,19 +1,21 @@
 const Order = require("../models/order");
-
 exports.getSalesDetails = async (req, res) => {
   try {
-    const startOfDay = new Date();
+    const { referenceDate } = req.body;
+
+    const reference = referenceDate ? new Date(referenceDate) : new Date();
+
+    const startOfDay = new Date(reference);
     startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
+
+    const endOfDay = new Date(reference);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const startOfYesterday = new Date();
+    const startOfYesterday = new Date(startOfDay);
     startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-    startOfYesterday.setHours(0, 0, 0, 0);
 
-    const endOfYesterday = new Date();
+    const endOfYesterday = new Date(endOfDay);
     endOfYesterday.setDate(endOfYesterday.getDate() - 1);
-    endOfYesterday.setHours(23, 59, 59, 999);
 
     const [todaysOrders, yesterdaysOrders] = await Promise.all([
       Order.find({ createdAt: { $gte: startOfDay, $lte: endOfDay } }),
