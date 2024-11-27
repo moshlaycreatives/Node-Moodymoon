@@ -81,24 +81,183 @@ exports.addProduct = async (req, res) => {
 exports.getAllProducts = async (req, res) => {
   try {
     const { page } = req.query;
+    const { status } = req.body;
     const limit = 20;
     const skip = (page - 1) * limit;
-    const products = await Product.find({ permanentDeleted: false })
-      .limit(limit)
-      .skip(skip)
-      .populate("productCategory")
-      .populate("brand");
-    if (!products) {
-      return res
-        .status(400)
-        .json({ success: false, message: "No Products Available" });
-    }
+    const { Id } = req.body;
+    // const { minPrice, maxPrice } = req.body;
+    // if (minPrice !== "" || maxPrice !== "") {
+    //   const filter = {
+    //     permanentDeleted: false,
+    //   };
 
-    return res.status(200).json({
-      success: true,
-      data: products,
-      total: await Product.countDocuments({ permanentDeleted: false }),
-    });
+    //   if (minPrice !== "" && maxPrice !== "") {
+    //     filter.price = { $gte: minPrice, $lte: maxPrice };
+    //   } else if (minPrice !== "") {
+    //     filter.price = { $gte: minPrice };
+    //   } else if (maxPrice !== "") {
+    //     filter.price = { $lte: maxPrice };
+    //   }
+
+    //   const products = await Product.find(filter).limit(limit).skip(skip);
+
+    //   return res.status(200).json({
+    //     success: true,
+    //     data: products,
+    //     total: await Product.countDocuments({
+    //       filter,
+    //     }),
+    //   });
+    // }
+
+    if (Id && status === "BRAND") {
+      const products = await Product.find({
+        brand: Id,
+        permanentDeleted: false,
+      })
+        .limit(limit)
+        .skip(skip)
+        .sort({
+          createdAt: -1,
+        });
+      if (!products) {
+        return res
+          .status(200)
+          .json({ success: true, message: "No Partner Products Yet" });
+      }
+      return res.status(200).json({
+        success: true,
+        data: products,
+        total: await Product.countDocuments({
+          brand: Id,
+          permanentDeleted: false,
+        }),
+      });
+    } else if (Id && status === "CATEGORY") {
+      const products = await Product.find({
+        productCategory: Id,
+        permanentDeleted: false,
+      })
+        .limit(limit)
+        .skip(skip)
+        .populate("productCategory")
+        .populate("brand");
+      if (!products) {
+        return res
+          .status(200)
+          .json({ success: true, message: "No Partner Products Yet" });
+      }
+      return res.status(200).json({
+        success: true,
+        data: products,
+        total: await Product.countDocuments({
+          brand: Id,
+          permanentDeleted: false,
+        }),
+      });
+    } else if (status === "ALL") {
+      const products = await Product.find({ permanentDeleted: false })
+        .limit(limit)
+        .skip(skip)
+        .populate("productCategory")
+        .populate("brand");
+      if (!products) {
+        return res
+          .status(400)
+          .json({ success: false, message: "No Products Available" });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: products,
+        total: await Product.countDocuments({ permanentDeleted: false }),
+      });
+    } else if (status === "AVAILABLE") {
+      const products = await Product.find({
+        stock: { $gt: 0 },
+        permanentDeleted: false,
+      })
+        .limit(limit)
+        .skip(skip)
+        .populate("productCategory")
+        .populate("brand");
+      return res.status(200).json({
+        success: true,
+        data: products,
+        total: await Product.countDocuments({
+          stock: { $gt: 0 },
+          permanentDeleted: false,
+        }),
+      });
+    } else if (status === "UNAVAILABLE") {
+      const products = await Product.find({
+        stock: { $lte: 0 },
+        permanentDeleted: false,
+      })
+        .limit(limit)
+        .skip(skip)
+        .populate("productCategory")
+        .populate("brand");
+      return res.status(200).json({
+        success: true,
+        data: products,
+        total: await Product.countDocuments({
+          stock: { $lte: 0 },
+          permanentDeleted: false,
+        }),
+      });
+    } else if (status === "LOW") {
+      const products = await Product.find({ permanentDeleted: false })
+        .limit(limit)
+        .skip(skip)
+        .populate("productCategory")
+        .populate("brand")
+        .sort({
+          price: 1,
+        });
+      return res.status(200).json({
+        success: true,
+        data: products,
+        total: await Product.countDocuments({
+          permanentDeleted: false,
+        }),
+      });
+    } else if (status === "HIGH") {
+      const products = await Product.find({ permanentDeleted: false })
+        .limit(limit)
+        .skip(skip)
+        .populate("productCategory")
+        .populate("brand")
+        .sort({
+          price: -1,
+        });
+      return res.status(200).json({
+        success: true,
+        data: products,
+        total: await Product.countDocuments({
+          permanentDeleted: false,
+        }),
+      });
+    } else if (status === "BEST") {
+      const products = await Product.find({
+        best: true,
+        permanentDeleted: false,
+      })
+        .limit(limit)
+        .skip(skip)
+        .populate("productCategory")
+        .populate("brand");
+      return res.status(200).json({
+        success: true,
+        data: products,
+        total: await Product.countDocuments({
+          permanentDeleted: false,
+          best: true,
+        }),
+      });
+    } else {
+      return res.status(400).json({ success: false, message: "Invalid Query" });
+    }
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
@@ -231,6 +390,7 @@ exports.deleteProduct = async (req, res) => {
 exports.getProductsWithFilter = async (req, res) => {
   try {
     const { status } = req.query;
+
     if (status === "LOW") {
       const products = await Product.find({ permanentDeleted: false })
         .populate("productCategory")
@@ -316,6 +476,33 @@ exports.getAllPartnerProducts = async (req, res) => {
         .json({ success: true, message: "No Partner Products Yet" });
     }
     return res.status(200).json({ success: true, data: products });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.searchApi = async (req, res) => {
+  try {
+    const search = req.query.search;
+    if (search) {
+      let data = await Product.find({
+        $or: [
+          { productName: new RegExp(search, "i"), permanentDeleted: false },
+        ],
+      });
+      if (data.length === 0) {
+        return res
+          .status(400)
+          .json({ success: false, message: "OOPS! No Product Found" });
+      }
+      return res
+        .status(200)
+        .json({ success: true, count: data.length, data: data });
+    } else if (search === " ") {
+      return res
+        .status(404)
+        .json({ success: false, message: "OOPS! No Product Found" });
+    }
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
   }

@@ -10,12 +10,14 @@ const {
   availablityProductFilter,
   deleteProduct,
   getAllPartnerProducts,
+  searchApi,
 } = require("../controllers/product");
 const auth = require("../middlewares/userAuth");
 const upload = require("../utills/upload");
 
 productRouter.post("/addProduct", upload.any(), addProduct);
-productRouter.get("/getAllProducts", getAllProducts);
+productRouter.post("/searchApi", searchApi);
+productRouter.post("/getAllProducts", getAllProducts);
 productRouter.get("/getProductById/:productId", getProductById);
 productRouter.get("/getAllPartnerProducts/:brandId", getAllPartnerProducts);
 productRouter.patch("/updateProduct/:productId", upload.any(), updateProduct);
