@@ -11,6 +11,7 @@ const {
   deleteProduct,
   getAllPartnerProducts,
   searchApi,
+  getFeaturedProducts,
 } = require("../controllers/product");
 const auth = require("../middlewares/userAuth");
 const upload = require("../utills/upload");
@@ -26,5 +27,6 @@ productRouter.patch("/deleteProduct/:productId", deleteProduct);
 productRouter.get("/getProductsWithFilter", getProductsWithFilter);
 productRouter.get("/getProductsByCategory/:categoryId", getProductsByCategory);
 productRouter.get("/availablityProductFilter", availablityProductFilter);
+productRouter.get("/getFeaturedProducts", getFeaturedProducts);
 
 module.exports = productRouter;

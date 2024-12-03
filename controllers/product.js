@@ -16,6 +16,7 @@ exports.addProduct = async (req, res) => {
       offer,
       flavor,
       labTestName,
+      isFeatured,
     } = req.body;
     const requiredFields = [
       "productName",
@@ -29,6 +30,7 @@ exports.addProduct = async (req, res) => {
       "offer",
       "flavor",
       "labTestName",
+      "isFeatured",
     ];
     const missingFieldMessage = validateRequiredFields(
       requiredFields,
@@ -59,6 +61,7 @@ exports.addProduct = async (req, res) => {
         flavor,
         labTest: labTest[0],
         labTestName,
+        isFeatured,
       });
       // await LabReport.create({
       //   labTest: labTest[0],
@@ -278,6 +281,7 @@ exports.updateProduct = async (req, res) => {
       offer,
       flavor,
       labTestName,
+      isFeatured,
     } = req.body;
 
     const updateFields = {
@@ -292,6 +296,7 @@ exports.updateProduct = async (req, res) => {
       offer: JSON.parse(offer),
       flavor,
       labTestName,
+      isFeatured,
     };
     // console.log("|||||||||||||||", req.files);
     if (req.files) {
@@ -364,6 +369,7 @@ exports.bestProductStatus = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
+
 exports.deleteProduct = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -505,5 +511,27 @@ exports.searchApi = async (req, res) => {
     }
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.getFeaturedProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ isFeatured: true });
+    if (products.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No Featured Products Yet",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: products,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
