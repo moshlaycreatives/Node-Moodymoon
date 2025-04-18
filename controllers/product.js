@@ -159,12 +159,57 @@ exports.getAllProducts = async (req, res) => {
         }),
       });
     } else if (status === "ALL") {
-      const products = await Product.find({ permanentDeleted: false })
-        .limit(limit)
-        .skip(skip)
-        .populate("productCategory")
-        .populate("brand");
-      if (!products) {
+      const categoryOrder = [
+        "THCa Flowers",
+        "PreRolls",
+        "Edibles",
+        "Disposable Vapes",
+        "Kratom",
+        "THCa Cuban Cigars",
+        "Novelities",
+      ];
+
+      const aggregationPipeline = [
+        { $match: { permanentDeleted: false } },
+        {
+          $lookup: {
+            from: "Category",
+            localField: "productCategory",
+            foreignField: "_id",
+            as: "productCategory",
+          },
+        },
+        {
+          $unwind: {
+            path: "$productCategory",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: "Brand",
+            localField: "brand",
+            foreignField: "_id",
+            as: "brand",
+          },
+        },
+        { $unwind: { path: "$brand", preserveNullAndEmptyArrays: true } },
+        {
+          $addFields: {
+            sortOrder: {
+              $indexOfArray: [categoryOrder, "$productCategory.name"],
+            },
+          },
+        },
+        { $sort: { sortOrder: 1 } },
+        { $skip: skip },
+        { $limit: limit },
+        { $project: { sortOrder: 0 } },
+      ];
+
+      const products = await Product.aggregate(aggregationPipeline);
+
+      if (!products.length) {
         return res
           .status(400)
           .json({ success: false, message: "No Products Available" });
@@ -175,6 +220,23 @@ exports.getAllProducts = async (req, res) => {
         data: products,
         total: await Product.countDocuments({ permanentDeleted: false }),
       });
+      // else if (status === "ALL") {
+      //   const products = await Product.find({ permanentDeleted: false })
+      //     .limit(limit)
+      //     .skip(skip)
+      //     .populate("productCategory")
+      //     .populate("brand");
+      //   if (!products) {
+      //     return res
+      //       .status(400)
+      //       .json({ success: false, message: "No Products Available" });
+      //   }
+
+      //   return res.status(200).json({
+      //     success: true,
+      //     data: products,
+      //     total: await Product.countDocuments({ permanentDeleted: false }),
+      //   });
     } else if (status === "AVAILABLE") {
       const products = await Product.find({
         stock: { $gt: 0 },
