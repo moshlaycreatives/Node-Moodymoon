@@ -170,41 +170,62 @@ exports.getAllProducts = async (req, res) => {
       ];
 
       const aggregationPipeline = [
-        { $match: { permanentDeleted: false } },
+        {
+          $match: {
+            permanentDeleted: false,
+          },
+        },
         {
           $lookup: {
-            from: "Category",
+            from: "categories", // Category collection name
             localField: "productCategory",
             foreignField: "_id",
-            as: "productCategory",
+            as: "categoryDetails",
           },
         },
         {
           $unwind: {
-            path: "$productCategory",
+            path: "$categoryDetails",
             preserveNullAndEmptyArrays: true,
           },
         },
         {
-          $lookup: {
-            from: "Brand",
-            localField: "brand",
-            foreignField: "_id",
-            as: "brand",
-          },
-        },
-        { $unwind: { path: "$brand", preserveNullAndEmptyArrays: true } },
-        {
           $addFields: {
+            categoryName: "$categoryDetails.name",
             sortOrder: {
-              $indexOfArray: [categoryOrder, "$productCategory.name"],
+              $indexOfArray: [categoryOrder, "$categoryDetails.name"],
             },
           },
         },
         { $sort: { sortOrder: 1 } },
+        {
+          $lookup: {
+            from: "brands", // Brand collection name
+            localField: "brand",
+            foreignField: "_id",
+            as: "brandDetails",
+          },
+        },
+        {
+          $unwind: { path: "$brandDetails", preserveNullAndEmptyArrays: true },
+        },
         { $skip: skip },
         { $limit: limit },
-        { $project: { sortOrder: 0 } },
+        {
+          $project: {
+            sortOrder: 0,
+            categoryDetails: 0,
+            brandDetails: 0,
+            "brand.permanentDeleted": 0,
+            "category.permanentDeleted": 0,
+          },
+        },
+        {
+          $addFields: {
+            productCategory: "$categoryDetails",
+            brand: "$brandDetails",
+          },
+        },
       ];
 
       const products = await Product.aggregate(aggregationPipeline);
@@ -220,6 +241,7 @@ exports.getAllProducts = async (req, res) => {
         data: products,
         total: await Product.countDocuments({ permanentDeleted: false }),
       });
+
       // else if (status === "ALL") {
       //   const products = await Product.find({ permanentDeleted: false })
       //     .limit(limit)
